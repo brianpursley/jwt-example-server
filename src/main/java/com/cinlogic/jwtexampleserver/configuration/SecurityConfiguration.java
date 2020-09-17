@@ -11,13 +11,9 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.*;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -51,16 +47,21 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     String actuatorPassword;
 
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public SecurityConfiguration(final JwtAuthenticationProvider jwtAuthenticationProvider) {
+    public SecurityConfiguration(final JwtAuthenticationProvider jwtAuthenticationProvider, final BCryptPasswordEncoder bCryptPasswordEncoder) {
         super();
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(jwtAuthenticationProvider);
-        auth.inMemoryAuthentication().withUser(actuatorUser).password(actuatorPassword).roles(ACTUATOR_ADMIN_ROLE);
+        auth.inMemoryAuthentication()
+                .withUser(actuatorUser)
+                .password(bCryptPasswordEncoder.encode(actuatorPassword))
+                .roles(ACTUATOR_ADMIN_ROLE);
     }
 
     @Override
@@ -83,7 +84,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests()
             .requestMatchers(ACTUATOR_ENDPOINTS)
-            .hasRole(ACTUATOR_ADMIN_ROLE);
+            .hasRole(ACTUATOR_ADMIN_ROLE)
+            .and().httpBasic();
 
         http.authorizeRequests()
             .anyRequest()

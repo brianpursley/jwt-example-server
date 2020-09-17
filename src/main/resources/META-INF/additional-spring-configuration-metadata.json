@@ -19,6 +19,16 @@
       "name": "jwt.refresh-token.duration",
       "type": "java.lang.Integer",
       "description": "JWT refresh token duration, in seconds."
+    },
+    {
+      "name": "jwt.access-token.secret-key",
+      "type": "java.lang.String",
+      "description": "JWT access token secret key."
+    },
+    {
+      "name": "jwt.refresh-token.secret-key",
+      "type": "java.lang.String",
+      "description": "JWT refresh token secret key."
     }
   ]
 }
